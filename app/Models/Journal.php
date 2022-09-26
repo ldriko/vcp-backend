@@ -11,10 +11,14 @@ class Journal extends Model
     use HasFactory;
 
     protected $primaryKey = 'code';
+    protected $keyType = 'string';
     protected $guarded = [];
     protected $casts = [
-        'code' => 'string'
+        'code' => 'string',
+        'is_published' => 'boolean'
     ];
+
+    public $incrementing = false;
 
     public function user(): BelongsTo
     {

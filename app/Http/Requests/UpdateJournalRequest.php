@@ -14,7 +14,7 @@ class UpdateJournalRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::check();
+        return (bool)$this->user();
     }
 
     /**
@@ -27,6 +27,7 @@ class UpdateJournalRequest extends FormRequest
         return [
             'title' => 'required|max:100',
             'short_desc' => 'required|max:250',
+            'file' => 'sometimes|required|file|mimes:pdf'
         ];
     }
 }

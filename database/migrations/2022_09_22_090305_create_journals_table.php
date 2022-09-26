@@ -16,11 +16,9 @@ return new class extends Migration {
             $table->string('code');
             $table->text('slug');
             $table->unsignedBigInteger('user_id');
-            $table->string('title', 100);
-            $table->string('short_desc', 250);
-            $table->string('path')
-                ->nullable()
-                ->default(null);
+            $table->string('title');
+            $table->string('short_desc');
+            $table->string('path');
             $table->boolean('is_published')
                 ->default(0);
             $table->timestamps();

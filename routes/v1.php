@@ -12,6 +12,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/user', [RegisteredUserController::class, 'update']);
 
     Route::prefix('/journals')->group(function () {
+        Route::get('', [JournalController::class, 'index']);
+        Route::get('/{journal}', [JournalController::class, 'show']);
         Route::post('', [JournalController::class, 'store']);
         Route::put('/{journal}', [JournalController::class, 'update']);
     });
