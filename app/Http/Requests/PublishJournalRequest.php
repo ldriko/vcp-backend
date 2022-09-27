@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateJournalRequest extends FormRequest
+class PublishJournalRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,9 +24,7 @@ class UpdateJournalRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|max:100',
-            'short_desc' => 'required|max:250',
-            'file' => 'sometimes|required|file|mimes:pdf'
+            'publish' => 'required|boolean'
         ];
     }
 }
