@@ -5,82 +5,81 @@ namespace App\Http\Controllers\v1;
 use App\Http\Controllers\Controller;
 use App\Models\Group;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class GroupController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
+     * @param Request $request
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
-    public function create()
+    public function index(Request $request): Response
     {
-        //
+        return $request->user()->groups();
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param Request $request
      */
     public function store(Request $request)
     {
-        //
+        $request->validate(['title' => ['required', 'max:50']]);
+
+        Group::query()->create([
+            'user_id' => $request->user()->id,
+            'title' => $request->title,
+            'description' => $request->description,
+        ]);
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Group  $group
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Group $group)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
+     * @param Group $group
      *
-     * @param  \App\Models\Group  $group
-     * @return \Illuminate\Http\Response
+     * @return Group
      */
-    public function edit(Group $group)
+    public function show(Group $group): Group
     {
-        //
+        return $group;
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Group  $group
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @param Group $group
      */
     public function update(Request $request, Group $group)
     {
-        //
+        $request->validate(['title' => ['required', 'max:50']]);
+
+        $group->update([
+            'title' => $request->title,
+            'description' => $request->description,
+        ]);
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Group  $group
-     * @return \Illuminate\Http\Response
+     * @param Group $group
      */
     public function destroy(Group $group)
     {
-        //
+        DB::beginTransaction();
+
+        $group->attachments->delete();
+        $group->chats->delete();
+        $group->members->delete();
+        $group->delete();
+
+        DB::commit();
     }
 }

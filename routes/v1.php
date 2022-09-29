@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\v1\GroupController;
 use App\Http\Controllers\v1\JournalController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +26,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::middleware('journal.author')->group(function () {
             Route::put('/{journal}', [JournalController::class, 'update']);
             Route::put('/{journal}/publish', [JournalController::class, 'publish']);
+            Route::delete('/{journal}', [JournalController::class, 'destroy']);
+        });
+    });
+
+    Route::prefix('/groups')->group(function () {
+        Route::get('', [GroupController::class, 'index']);
+        Route::get('/{group}', [GroupController::class, 'show'])
+            ->middleware('group.member');
+        Route::post('', [GroupController::class, 'store']);
+
+        Route::middleware(['group.member', 'group.admin'])->group(function () {
+            Route::put('/{group}', [GroupController::class, 'update']);
+            Route::delete('/{group}', [GroupController::class, 'destroy']);
         });
     });
 });
