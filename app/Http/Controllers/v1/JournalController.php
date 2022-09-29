@@ -3,9 +3,6 @@
 namespace App\Http\Controllers\v1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreJournalRequest;
-use App\Http\Requests\UpdateJournalRequest;
-use App\Http\Requests\PublishJournalRequest;
 use App\Models\Journal;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -33,7 +30,6 @@ class JournalController extends Controller
         ]);
 
         $searchQuery = Str::of($request->q)->explode(' ');
-
         $query = Journal::query()->where('is_published', true);
 
         $query->where(function ($query) use ($searchQuery) {
@@ -55,10 +51,16 @@ class JournalController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param StoreJournalRequest $request
+     * @param Request $request
      */
-    public function store(StoreJournalRequest $request)
+    public function store(Request $request)
     {
+        $request->validate([
+            'title' => 'required',
+            'short_desc' => 'required',
+            'file' => 'required|file|mimes:pdf'
+        ]);
+
         $randomCodes = [Str::random(4), Str::random(4), Str::random(4)];
         $code = Str::lower(Arr::join($randomCodes, '-'));
         $slug = Str::slug($request->title . ' ' . Arr::last($randomCodes));
@@ -77,17 +79,12 @@ class JournalController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param Request $request
      * @param Journal $journal
      *
      * @return Journal
      */
-    public function show(Request $request, Journal $journal): Journal
+    public function show(Journal $journal): Journal
     {
-        if ($journal->user->id !== $request->user()->id && !$journal->is_published) {
-            abort(404);
-        }
-
         return $journal;
     }
 
@@ -106,25 +103,28 @@ class JournalController extends Controller
     }
 
     /**
-     * @param PublishJournalRequest $request
+     * @param Request $request
      * @param Journal $journal
      */
-    public function publish(PublishJournalRequest $request, Journal $journal)
+    public function publish(Request $request, Journal $journal)
     {
+        $request->validate(['publish' => 'required|boolean']);
         $journal->update(['is_published' => $request->publish]);
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param UpdateJournalRequest $request
+     * @param Request $request
      * @param Journal $journal
      */
-    public function update(UpdateJournalRequest $request, Journal $journal)
+    public function update(Request $request, Journal $journal)
     {
-        if ($journal->user->id !== $request->user()->id) {
-            abort(404);
-        }
+        $request->validate([
+            'title' => 'required|max:100',
+            'short_desc' => 'required|max:250',
+            'file' => 'sometimes|required|file|mimes:pdf'
+        ]);
 
         $lastCode = Str::of($journal->code)->explode('-')->last();
         $slug = Str::slug($request->title . ' ' . $lastCode);
@@ -147,15 +147,10 @@ class JournalController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param Request $request
      * @param Journal $journal
      */
-    public function destroy(Request $request, Journal $journal)
+    public function destroy(Journal $journal)
     {
-        if ($journal->user->id !== $request->user()->id) {
-            abort(404);
-        }
-
         $journal->delete();
     }
 }
