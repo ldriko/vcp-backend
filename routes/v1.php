@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\v1\GroupController;
+use App\Http\Controllers\v1\GroupMemberController;
 use App\Http\Controllers\v1\JournalController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -31,11 +32,16 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('/groups')->group(function () {
+        // TODO: Add member only middleware
+        Route::prefix('/members')->group(function () {
+            // TODO: Add more functionality for new member join requests, acceptance and removal.
+            Route::get('', [GroupMemberController::class, 'index']);
+        });
+
         Route::get('', [GroupController::class, 'index']);
+        Route::post('', [GroupController::class, 'store']);
         Route::get('/{group}', [GroupController::class, 'show'])
             ->middleware('group.member');
-        Route::post('', [GroupController::class, 'store']);
-
         Route::middleware(['group.member', 'group.admin'])->group(function () {
             Route::put('/{group}', [GroupController::class, 'update']);
             Route::delete('/{group}', [GroupController::class, 'destroy']);
