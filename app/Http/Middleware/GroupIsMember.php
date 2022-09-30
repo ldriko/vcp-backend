@@ -14,15 +14,16 @@ class GroupIsMember
      * Handle an incoming request.
      *
      * @param Request $request
-     * @param Closure(Request): (Response|RedirectResponse) $next
+     * @param Closure $next
      *
-     * @return Response|RedirectResponse
+     * @return RedirectResponse|Response|mixed
      */
-    public function handle(Request $request, Closure $next): Response|RedirectResponse
+    public function handle(Request $request, Closure $next): mixed
     {
-        $group = Group::query()->findOrFail($request->route()->parameter('group'));
+        $group = $request->route()->parameter('group');
 
-        if (!$group->members->where('user_id', $request->user()->id)->exists()) {
+        // TODO: Change collection to query validation
+        if (!$group->members->contains('user_id', $request->user()->id)) {
             abort(404);
         }
 

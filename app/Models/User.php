@@ -21,7 +21,7 @@ class User extends Authenticatable
 
     public function groups(): HasManyThrough
     {
-        return $this->hasManyThrough(Group::class, GroupMember::class);
+        return $this->hasManyThrough(Group::class, GroupMember::class, 'user_id', 'id');
     }
 
     public function journals(): HasMany

@@ -16,11 +16,11 @@ class GroupIsAdmin
      * @param Request $request
      * @param Closure(Request): (Response|RedirectResponse) $next
      *
-     * @return Response|RedirectResponse
+     * @return Response|RedirectResponse|mixed
      */
-    public function handle(Request $request, Closure $next): Response|RedirectResponse
+    public function handle(Request $request, Closure $next): mixed
     {
-        $group = Group::query()->findOrFail($request->route()->parameter('group'));
+        $group = $request->route()->parameter('group');
 
         if ($group->user_id !== $request->user()->id) {
             abort(404);

@@ -6,6 +6,7 @@ use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\EncryptCookies;
 use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\ForceJsonResponse;
+use App\Http\Middleware\GroupIsAdmin;
 use App\Http\Middleware\GroupIsMember;
 use App\Http\Middleware\JournalIsAuthor;
 use App\Http\Middleware\JournalIsPublished;
@@ -101,6 +102,7 @@ class Kernel extends HttpKernel
         'verified' => EnsureEmailIsVerified::class,
         'journal.author' => JournalIsAuthor::class,
         'journal.published' => JournalIsPublished::class,
-        'group.member' => GroupIsMember::class
+        'group.member' => GroupIsMember::class,
+        'group.admin' => GroupIsAdmin::class
     ];
 }

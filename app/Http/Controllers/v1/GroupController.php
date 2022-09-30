@@ -4,6 +4,7 @@ namespace App\Http\Controllers\v1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Group;
+use App\Models\GroupMember;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -15,11 +16,11 @@ class GroupController extends Controller
      *
      * @param Request $request
      *
-     * @return Response
+     * @return mixed
      */
-    public function index(Request $request): Response
+    public function index(Request $request): mixed
     {
-        return $request->user()->groups();
+        return $request->user()->groups;
     }
 
     /**
@@ -29,12 +30,20 @@ class GroupController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate(['title' => ['required', 'max:50']]);
+        $request->validate([
+            'title' => ['required', 'max:50'],
+            'description' => ['sometimes', 'max:250'],
+        ]);
 
-        Group::query()->create([
+        $group = Group::query()->create([
             'user_id' => $request->user()->id,
             'title' => $request->title,
             'description' => $request->description,
+        ]);
+
+        GroupMember::query()->create([
+            'group_id' => $group->id,
+            'user_id' => $request->user()->id,
         ]);
     }
 
@@ -58,7 +67,10 @@ class GroupController extends Controller
      */
     public function update(Request $request, Group $group)
     {
-        $request->validate(['title' => ['required', 'max:50']]);
+        $request->validate([
+            'title' => ['required', 'max:50'],
+            'description' => ['sometimes', 'max:250'],
+        ]);
 
         $group->update([
             'title' => $request->title,
@@ -75,9 +87,9 @@ class GroupController extends Controller
     {
         DB::beginTransaction();
 
-        $group->attachments->delete();
-        $group->chats->delete();
-        $group->members->delete();
+        $group->attachments()->delete();
+        $group->chats()->delete();
+        $group->members()->delete();
         $group->delete();
 
         DB::commit();
