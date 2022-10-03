@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\v1\GroupChatController;
 use App\Http\Controllers\v1\GroupController;
 use App\Http\Controllers\v1\GroupMemberController;
 use App\Http\Controllers\v1\JournalController;
@@ -32,19 +33,30 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('/groups')->group(function () {
-        // TODO: Add member only middleware
-        Route::prefix('/members')->group(function () {
-            // TODO: Add more functionality for new member join requests, acceptance and removal.
-            Route::get('', [GroupMemberController::class, 'index']);
-        });
-
         Route::get('', [GroupController::class, 'index']);
         Route::post('', [GroupController::class, 'store']);
-        Route::get('/{group}', [GroupController::class, 'show'])
-            ->middleware('group.member');
-        Route::middleware(['group.member', 'group.admin'])->group(function () {
-            Route::put('/{group}', [GroupController::class, 'update']);
-            Route::delete('/{group}', [GroupController::class, 'destroy']);
+        Route::get('/{group}/invite', [GroupController::class, 'invite'])
+            ->middleware('group.admin');
+        Route::post('/{group}/join', [GroupController::class, 'join'])
+            ->middleware('signed')
+            ->name('group.join');
+
+        Route::prefix('/{group}')->middleware('group.member')->group(function () {
+            Route::get('', [GroupController::class, 'show']);
+
+            Route::middleware('group.admin')->group(function () {
+                Route::put('', [GroupController::class, 'update']);
+                Route::delete('', [GroupController::class, 'destroy']);
+            });
+
+            Route::prefix('/members')->middleware('group.admin')->group(function () {
+                Route::get('', [GroupMemberController::class, 'index']);
+                Route::delete('/{user}', [GroupMemberController::class, 'destroy']);
+            });
+
+            Route::prefix('/chat')->group(function () {
+                Route::post('', [GroupChatController::class, 'store']);
+            });
         });
     });
 });
