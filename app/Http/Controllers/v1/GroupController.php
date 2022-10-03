@@ -5,9 +5,12 @@ namespace App\Http\Controllers\v1;
 use App\Http\Controllers\Controller;
 use App\Models\Group;
 use App\Models\GroupMember;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 
 class GroupController extends Controller
 {
@@ -93,5 +96,35 @@ class GroupController extends Controller
         $group->delete();
 
         DB::commit();
+    }
+
+    /**
+     * @param Group $group
+     *
+     * @return string
+     */
+    public function invite(Group $group): string
+    {
+        return URL::signedRoute('group.join', ['group' => $group->id], now()->addMinutes(30));
+    }
+
+    /**
+     * @param Group $group
+     * @param Request $request
+     *
+     * @return Response|Application|ResponseFactory
+     */
+    public function join(Group $group, Request $request): Response|Application|ResponseFactory
+    {
+        if ($group->members()->where('user_id', $request->user()->id)->exists()) {
+            return response(false);
+        }
+
+        GroupMember::query()->create([
+            'group_id' => $group->id,
+            'user_id' => $request->user()->id
+        ]);
+
+        return response(true);
     }
 }
