@@ -20,7 +20,7 @@ class JournalIsAuthor
      */
     public function handle(Request $request, Closure $next): Response|RedirectResponse
     {
-        $journal = Journal::query()->findOrFail($request->route()->parameter('journal'));
+        $journal = $request->route()->parameter('journal');
 
         if ($journal->user_id !== $request->user()->id) {
             abort(404);

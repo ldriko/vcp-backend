@@ -15,13 +15,23 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class JournalController extends Controller
 {
     /**
+     * @param Request $request
+     *
+     * @return Collection
+     */
+    public function index(Request $request): Collection
+    {
+        return $request->user()->journals;
+    }
+
+    /**
      * Display a listing of the resource.
      *
      * @param Request $request
      *
      * @return Builder|Collection
      */
-    public function index(Request $request): Collection|array
+    public function search(Request $request): Collection|array
     {
         $request->validate([
             'q' => ['required'],
@@ -93,12 +103,19 @@ class JournalController extends Controller
      *
      * @return StreamedResponse
      */
-    public function showPdf(Journal $journal): StreamedResponse
+    public function showPdf(Journal $journal, Request $request): StreamedResponse
     {
+        $request->validate([
+            'is_download' => 'sometimes|boolean'
+        ]);
+
         return Storage::disk('journals')->download(
             $journal->path,
             $journal->title,
-            ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline;']
+            [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => $request->boolean('is_download') ? 'attachment;' : 'inline;'
+            ]
         );
     }
 
