@@ -22,8 +22,7 @@ class GroupIsMember
     {
         $group = $request->route()->parameter('group');
 
-        // TODO: Change collection to query validation
-        if (!$group->members->contains('user_id', $request->user()->id)) {
+        if (!$group->members()->where('user_id', $request->user()->id)) {
             abort(404);
         }
 

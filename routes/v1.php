@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\v1\GroupChatAttachmentController;
 use App\Http\Controllers\v1\GroupChatController;
 use App\Http\Controllers\v1\GroupController;
 use App\Http\Controllers\v1\GroupMemberController;
@@ -19,6 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('/journals')->group(function () {
         Route::get('', [JournalController::class, 'index']);
+        Route::get('/search', [JournalController::class, 'search']);
         Route::post('', [JournalController::class, 'store']);
 
         Route::middleware('journal.published')->group(function () {
@@ -55,7 +57,13 @@ Route::middleware('auth:sanctum')->group(function () {
             });
 
             Route::prefix('/chat')->group(function () {
+                Route::get('', [GroupChatController::class, 'index']);
                 Route::post('', [GroupChatController::class, 'store']);
+            });
+
+            Route::prefix('/attachments')->group(function () {
+                Route::get('', [GroupChatAttachmentController::class, 'index']);
+                Route::post('', [GroupChatAttachmentController::class, 'store']);
             });
         });
     });
