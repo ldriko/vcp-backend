@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Journal;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
@@ -62,8 +63,10 @@ class JournalController extends Controller
      * Store a newly created resource in storage.
      *
      * @param Request $request
+     *
+     * @return Model|Builder
      */
-    public function store(Request $request)
+    public function store(Request $request): Model|Builder
     {
         $request->validate([
             'title' => 'required',
@@ -76,7 +79,7 @@ class JournalController extends Controller
         $slug = Str::slug($request->title . ' ' . Arr::last($randomCodes));
         $path = Storage::disk('journals')->put('', $request->file('file'));
 
-        Journal::query()->create([
+        return Journal::query()->create([
             'code' => $code,
             'slug' => $slug,
             'user_id' => $request->user()->id,
@@ -100,6 +103,7 @@ class JournalController extends Controller
 
     /**
      * @param Journal $journal
+     * @param Request $request
      *
      * @return StreamedResponse
      */
@@ -134,8 +138,10 @@ class JournalController extends Controller
      *
      * @param Request $request
      * @param Journal $journal
+     *
+     * @return Journal
      */
-    public function update(Request $request, Journal $journal)
+    public function update(Request $request, Journal $journal): Journal
     {
         $request->validate([
             'title' => 'required|max:100',
@@ -159,6 +165,8 @@ class JournalController extends Controller
 
             $journal->update(['path' => $path]);
         }
+
+        return $journal;
     }
 
     /**
