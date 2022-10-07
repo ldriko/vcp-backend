@@ -16,10 +16,10 @@ class AuthenticatedSessionController extends Controller
      *
      * @param LoginRequest $request
      *
-     * @return Response
+     * @return mixed
      * @throws ValidationException
      */
-    public function store(LoginRequest $request): Response
+    public function store(LoginRequest $request): mixed
     {
         $request->authenticate();
         $request->session()->regenerate();
@@ -31,15 +31,11 @@ class AuthenticatedSessionController extends Controller
      * Destroy an authenticated session.
      *
      * @param Request $request
-     *
-     * @return Response
      */
-    public function destroy(Request $request): Response
+    public function destroy(Request $request)
     {
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
-        return response()->noContent();
     }
 }

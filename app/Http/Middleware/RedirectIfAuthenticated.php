@@ -17,9 +17,9 @@ class RedirectIfAuthenticated
      * @param Request $request
      * @param Closure $next
      *
-     * @return Response|RedirectResponse
+     * @return mixed
      */
-    public function handle(Request $request, Closure $next): Response|RedirectResponse
+    public function handle(Request $request, Closure $next): mixed
     {
         return $next($request);
     }

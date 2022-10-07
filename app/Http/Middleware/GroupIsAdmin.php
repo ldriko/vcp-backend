@@ -15,7 +15,7 @@ class GroupIsAdmin
      * @param Request $request
      * @param Closure(Request): (Response|RedirectResponse) $next
      *
-     * @return Response|RedirectResponse|mixed
+     * @return mixed
      */
     public function handle(Request $request, Closure $next): mixed
     {

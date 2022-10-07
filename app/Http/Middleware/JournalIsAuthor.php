@@ -13,11 +13,11 @@ class JournalIsAuthor
      * Handle an incoming request.
      *
      * @param Request $request
-     * @param Closure(Request): (Response|RedirectResponse) $next
+     * @param Closure $next
      *
-     * @return Response|RedirectResponse
+     * @return RedirectResponse|Response|mixed
      */
-    public function handle(Request $request, Closure $next): Response|RedirectResponse
+    public function handle(Request $request, Closure $next): mixed
     {
         $journal = $request->route()->parameter('journal');
 
