@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\RegisteredUserController;
-use App\Http\Controllers\v1\GroupChatAttachmentController;
+use App\Http\Controllers\v1\GroupAttachmentController;
 use App\Http\Controllers\v1\GroupChatController;
 use App\Http\Controllers\v1\GroupController;
 use App\Http\Controllers\v1\GroupMemberController;
@@ -62,8 +62,8 @@ Route::middleware('auth:sanctum')->group(function () {
             });
 
             Route::prefix('/attachments')->group(function () {
-                Route::get('', [GroupChatAttachmentController::class, 'index']);
-                Route::post('', [GroupChatAttachmentController::class, 'store']);
+                Route::get('', [GroupAttachmentController::class, 'index']);
+                Route::post('', [GroupAttachmentController::class, 'store']);
             });
         });
     });

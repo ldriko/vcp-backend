@@ -5,12 +5,13 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 
@@ -21,10 +22,9 @@ class RegisteredUserController extends Controller
      *
      * @param Request $request
      *
-     * @return Response
-     * @throws ValidationException
+     * @return Model|Builder
      */
-    public function store(Request $request)
+    public function store(Request $request): Model|Builder
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -33,7 +33,7 @@ class RegisteredUserController extends Controller
             'gender' => ['required', 'in:0,1,2'],
         ]);
 
-        $user = User::create([
+        $user = User::query()->create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
@@ -44,15 +44,15 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return response()->noContent();
+        return $user;
     }
 
     /**
      * @param Request $request
      *
-     * @return Response
+     * @return mixed
      */
-    public function update(Request $request)
+    public function update(Request $request): mixed
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -68,6 +68,6 @@ class RegisteredUserController extends Controller
             $user->update(['password' => Hash::make($request->password)]);
         }
 
-        return response()->noContent();
+        return $user;
     }
 }

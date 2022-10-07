@@ -36,12 +36,6 @@ use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 class Kernel extends HttpKernel
 {
-    public function __construct(Application $app, Router $router)
-    {
-        parent::__construct($app, $router);
-        $this->prependToMiddlewarePriority(ForceJsonResponse::class);
-    }
-
     /**
      * The application's global HTTP middleware stack.
      *
@@ -59,7 +53,6 @@ class Kernel extends HttpKernel
         StartSession::class,
         ShareErrorsFromSession::class
     ];
-
     /**
      * The application's route middleware groups.
      *
@@ -81,7 +74,6 @@ class Kernel extends HttpKernel
             SubstituteBindings::class,
         ],
     ];
-
     /**
      * The application's route middleware.
      *
@@ -105,4 +97,10 @@ class Kernel extends HttpKernel
         'group.member' => GroupIsMember::class,
         'group.admin' => GroupIsAdmin::class
     ];
+
+    public function __construct(Application $app, Router $router)
+    {
+        parent::__construct($app, $router);
+        $this->prependToMiddlewarePriority(ForceJsonResponse::class);
+    }
 }

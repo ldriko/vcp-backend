@@ -12,10 +12,9 @@ class PasswordResetLinkController extends Controller
     /**
      * Handle an incoming password reset link request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param Request $request
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function store(Request $request)
     {
@@ -35,7 +34,5 @@ class PasswordResetLinkController extends Controller
                 'email' => [__($status)],
             ]);
         }
-
-        return response()->json(['status' => __($status)]);
     }
 }

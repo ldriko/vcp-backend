@@ -19,7 +19,7 @@ class Group extends Model
 
     public function attachments(): HasMany
     {
-        return $this->hasMany(GroupChatAttachment::class);
+        return $this->hasMany(GroupAttachment::class);
     }
 
     public function members(): HasMany

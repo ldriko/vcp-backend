@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Journal;
 use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

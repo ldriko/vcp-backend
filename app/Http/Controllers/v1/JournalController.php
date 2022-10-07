@@ -29,9 +29,9 @@ class JournalController extends Controller
      *
      * @param Request $request
      *
-     * @return Builder|Collection
+     * @return Collection
      */
-    public function search(Request $request): Collection|array
+    public function search(Request $request): Collection
     {
         $request->validate([
             'q' => ['required'],

@@ -7,6 +7,8 @@ use App\Models\Group;
 use App\Models\GroupMember;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Routing\ResponseFactory;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -30,8 +32,10 @@ class GroupController extends Controller
      * Store a newly created resource in storage.
      *
      * @param Request $request
+     *
+     * @return Model|Builder
      */
-    public function store(Request $request)
+    public function store(Request $request): Model|Builder
     {
         $request->validate([
             'title' => ['required', 'max:50'],
@@ -48,6 +52,8 @@ class GroupController extends Controller
             'group_id' => $group->id,
             'user_id' => $request->user()->id,
         ]);
+
+        return $group;
     }
 
     /**
@@ -67,8 +73,10 @@ class GroupController extends Controller
      *
      * @param Request $request
      * @param Group $group
+     *
+     * @return Group
      */
-    public function update(Request $request, Group $group)
+    public function update(Request $request, Group $group): Group
     {
         $request->validate([
             'title' => ['required', 'max:50'],
@@ -79,6 +87,8 @@ class GroupController extends Controller
             'title' => $request->title,
             'description' => $request->description,
         ]);
+
+        return $group;
     }
 
     /**
@@ -111,20 +121,16 @@ class GroupController extends Controller
     /**
      * @param Group $group
      * @param Request $request
-     *
-     * @return Response|Application|ResponseFactory
      */
-    public function join(Group $group, Request $request): Response|Application|ResponseFactory
+    public function join(Group $group, Request $request)
     {
         if ($group->members()->where('user_id', $request->user()->id)->exists()) {
-            return response(false);
+            return;
         }
 
         GroupMember::query()->create([
             'group_id' => $group->id,
             'user_id' => $request->user()->id
         ]);
-
-        return response(true);
     }
 }

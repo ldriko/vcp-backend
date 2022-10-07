@@ -16,10 +16,9 @@ class NewPasswordController extends Controller
     /**
      * Handle an incoming new password request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param Request $request
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function store(Request $request)
     {
@@ -31,7 +30,7 @@ class NewPasswordController extends Controller
 
         // Here we will attempt to reset the user's password. If it is successful we
         // will update the password on an actual user model and persist it to the
-        // database. Otherwise we will parse the error and return the response.
+        // database. Otherwise, we will parse the error and return the response.
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user) use ($request) {
@@ -49,7 +48,5 @@ class NewPasswordController extends Controller
                 'email' => [__($status)],
             ]);
         }
-
-        return response()->json(['status' => __($status)]);
     }
 }

@@ -4,14 +4,14 @@ namespace App\Http\Controllers\v1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Group;
-use App\Models\GroupChatAttachment;
+use App\Models\GroupAttachment;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-class GroupChatAttachmentController extends Controller
+class GroupAttachmentController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -45,7 +45,7 @@ class GroupChatAttachmentController extends Controller
             'journal_code' => 'required|exists:journals,code',
         ]);
 
-        return GroupChatAttachment::query()->create([
+        return GroupAttachment::query()->create([
             'group_id' => $group->id,
             'user_id' => $request->user()->id,
             'journal_code' => $request->journal_code,
@@ -56,11 +56,11 @@ class GroupChatAttachmentController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param GroupChatAttachment $groupChatAttachment
+     * @param GroupAttachment $groupChatAttachment
      *
-     * @return GroupChatAttachment
+     * @return GroupAttachment
      */
-    public function show(GroupChatAttachment $groupChatAttachment): GroupChatAttachment
+    public function show(GroupAttachment $groupChatAttachment): GroupAttachment
     {
         return $groupChatAttachment;
     }
