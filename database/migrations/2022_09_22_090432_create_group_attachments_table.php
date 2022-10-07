@@ -7,12 +7,10 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up()
     {
-        Schema::create('group_chat_attachments', function (Blueprint $table) {
+        Schema::create('group_attachments', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('group_id');
             $table->unsignedBigInteger('user_id');
@@ -26,11 +24,9 @@ return new class extends Migration {
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down()
     {
-        Schema::dropIfExists('group_chat_attachments');
+        Schema::dropIfExists('group_attachments');
     }
 };
