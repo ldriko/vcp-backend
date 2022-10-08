@@ -19,6 +19,6 @@ class JournalCategory extends Model
 
     public function journal(): BelongsTo
     {
-        return $this->belongsTo(Journal::class);
+        return $this->belongsTo(Journal::class, 'journal_code');
     }
 }

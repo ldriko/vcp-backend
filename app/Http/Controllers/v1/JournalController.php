@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\v1;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Journal;
+use App\Models\JournalCategory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -35,13 +38,15 @@ class JournalController extends Controller
     public function search(Request $request): Collection
     {
         $request->validate([
-            'q' => ['required'],
-            'limit' => ['sometimes', 'numeric'],
-            'page' => ['sometimes', 'numeric'],
+            'q' => 'required',
+            'limit' => 'sometimes|numeric',
+            'page' => 'sometimes|numeric',
         ]);
 
         $searchQuery = Str::of($request->q)->explode(' ');
-        $query = Journal::query()->where('is_published', true);
+        $query = Journal::query()
+            ->with('categories')
+            ->where('is_published', true);
 
         $query->where(function ($query) use ($searchQuery) {
             foreach ($searchQuery as $q) {
@@ -71,6 +76,7 @@ class JournalController extends Controller
         $request->validate([
             'title' => 'required',
             'short_desc' => 'required',
+            'categories' => 'required|array',
             'file' => 'required|file|mimes:pdf'
         ]);
 
@@ -79,7 +85,9 @@ class JournalController extends Controller
         $slug = Str::slug($request->title . ' ' . Arr::last($randomCodes));
         $path = Storage::disk('journals')->put('', $request->file('file'));
 
-        return Journal::query()->create([
+        DB::beginTransaction();
+
+        $journal = Journal::query()->create([
             'code' => $code,
             'slug' => $slug,
             'user_id' => $request->user()->id,
@@ -87,6 +95,21 @@ class JournalController extends Controller
             'short_desc' => $request->short_desc,
             'path' => $path
         ]);
+
+        foreach ($request->categories as $category) {
+            if (!Category::query()->find($category)) {
+                abort(401, 'Category not found');
+            }
+
+            JournalCategory::query()->create([
+                'journal_code' => $journal->code,
+                'category_id' => $category
+            ]);
+        }
+
+        DB::commit();
+
+        return $journal;
     }
 
     /**
@@ -109,9 +132,7 @@ class JournalController extends Controller
      */
     public function showPdf(Journal $journal, Request $request): StreamedResponse
     {
-        $request->validate([
-            'is_download' => 'sometimes|boolean'
-        ]);
+        $request->validate(['is_download' => 'sometimes|boolean']);
 
         return Storage::disk('journals')->download(
             $journal->path,
@@ -146,17 +167,35 @@ class JournalController extends Controller
         $request->validate([
             'title' => 'required|max:100',
             'short_desc' => 'required|max:250',
-            'file' => 'sometimes|required|file|mimes:pdf'
+            'categories' => 'required|array',
+            'file' => 'sometimes|required|file|mimes:pdf',
         ]);
 
         $lastCode = Str::of($journal->code)->explode('-')->last();
         $slug = Str::slug($request->title . ' ' . $lastCode);
+
+        DB::beginTransaction();
 
         $journal->update([
             'slug' => $slug,
             'title' => $request->title,
             'short_desc' => $request->short_desc,
         ]);
+
+        $journal->categoriesTunnel()->delete();
+
+        foreach ($request->categories as $category) {
+            if (!Category::query()->find($category)) {
+                abort(401, 'Category not found');
+            }
+
+            JournalCategory::query()->create([
+                'journal_code' => $journal->code,
+                'category_id' => $category
+            ]);
+        }
+
+        DB::commit();
 
         if ($request->hasFile('file')) {
             Storage::disk('journals')->delete($journal->path);
