@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,12 +12,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'password' => Hash::make('password')
+        User::factory()->createMany([
+            ['name' => 'Heaven', 'email' => 'heaven@example.com'],
+            ['name' => 'Cinta', 'email' => 'cinta@example.com'],
+            ['name' => 'Reyza', 'email' => 'reyza@example.com'],
         ]);
 
         $this->call(CategorySeeder::class);
+        $this->call(JournalSeeder::class);
+        $this->call(GroupSeeder::class);
     }
 }
