@@ -29,7 +29,7 @@ class Journal extends Model
 
     public function categories(): HasOneThrough
     {
-        return $this->hasOneThrough(Category::class, JournalCategory::class, 'journal_code', 'id');
+        return $this->hasOneThrough(Category::class, JournalCategory::class, 'journal_code', 'category_id');
     }
 
     public function categoriesTunnel(): HasOne
