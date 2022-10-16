@@ -22,13 +22,15 @@ class GroupChatController extends Controller
      */
     public function index(Group $group, Request $request): Collection
     {
-        $request->validate(['offset' => 'sometimes|numeric']);
+        $request->validate(['offset_id' => 'sometimes|numeric']);
 
-        return $group->chats()
-            ->latest()
-            ->limit(15)
-            ->offset($request->offset)
-            ->get();
+        $query = $group->chats()->with('user');
+
+        if ($request->offset_id) {
+            $query->where('id', '>', $request->offset_id);
+        }
+
+        return $query->limit(15)->get();
     }
 
     /**
@@ -43,10 +45,14 @@ class GroupChatController extends Controller
     {
         $request->validate(['text' => 'required']);
 
-        return GroupChat::query()->create([
+        $chat = GroupChat::query()->create([
             'group_id' => $group->id,
             'user_id' => $request->user()->id,
             'text' => $request->text
         ]);
+
+        $group->touch();
+
+        return $chat;
     }
 }
