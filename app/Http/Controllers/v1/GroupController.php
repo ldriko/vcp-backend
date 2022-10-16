@@ -4,15 +4,15 @@ namespace App\Http\Controllers\v1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Group;
+use App\Models\GroupChat;
 use App\Models\GroupMember;
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 
 class GroupController extends Controller
 {
@@ -21,11 +21,40 @@ class GroupController extends Controller
      *
      * @param Request $request
      *
-     * @return mixed
+     * @return Collection
      */
-    public function index(Request $request): mixed
+    public function index(Request $request): Collection
     {
-        return $request->user()->groups;
+        $query = Group::query()
+            ->with('latestChat.user')
+            ->whereHas('members', function (Builder $query) use ($request) {
+                $query->where('user_id', $request->user()->id);
+            });
+
+        if ($request->has('q')) {
+            $query->where('title', 'like', "%$request->q%");
+        }
+
+        return $query->latest()->get();
+    }
+
+    /**
+     * Generates random string that does not exist
+     *
+     * @return string
+     */
+    public function generateCode(): string
+    {
+        $found = false;
+        $code = null;
+
+        while (!$found || $code === null) {
+            $code = Str::random(9);
+            $exists = Group::query()->where('code', "BINARY '$code'")->exists();
+            $found = !$exists;
+        }
+
+        return $code;
     }
 
     /**
@@ -40,9 +69,11 @@ class GroupController extends Controller
         $request->validate([
             'title' => ['required', 'max:50'],
             'description' => ['sometimes', 'max:250'],
+            'code' => ['required', 'min:9', 'max:9']
         ]);
 
         $group = Group::query()->create([
+            'code' => $request->code,
             'user_id' => $request->user()->id,
             'title' => $request->title,
             'description' => $request->description,
@@ -52,6 +83,14 @@ class GroupController extends Controller
             'group_id' => $group->id,
             'user_id' => $request->user()->id,
         ]);
+
+        GroupChat::query()->create([
+            'group_id' => $group->id,
+            'user_id' => $request->user()->id,
+            'text' => 'Grup telah dibuat'
+        ]);
+
+        $group->touch();
 
         return $group;
     }
@@ -66,6 +105,18 @@ class GroupController extends Controller
     public function show(Group $group): Group
     {
         return $group;
+    }
+
+    /**
+     * Show the group members count
+     *
+     * @param Group $group
+     *
+     * @return int
+     */
+    public function showMembersCount(Group $group): int
+    {
+        return count($group->members);
     }
 
     /**
@@ -119,18 +170,32 @@ class GroupController extends Controller
     }
 
     /**
+     * @param Request $request
+     */
+    public function join(Request $request)
+    {
+        $request->validate(['code' => 'required']);
+
+        $group = Group::query()->where('code', $request->code)->firstOrFail();
+
+        if (!GroupMember::query()->where('group_id', $group->id)->where('user_id', $request->user()->id)->exists()) {
+            GroupMember::query()->create([
+                'group_id' => $group->id,
+                'user_id' => $request->user()->id
+            ]);
+        }
+    }
+
+    /**
      * @param Group $group
      * @param Request $request
      */
-    public function join(Group $group, Request $request)
+    public function exit(Group $group, Request $request)
     {
-        if ($group->members()->where('user_id', $request->user()->id)->exists()) {
-            return;
-        }
-
-        GroupMember::query()->create([
-            'group_id' => $group->id,
-            'user_id' => $request->user()->id
-        ]);
+        GroupMember::query()
+            ->where('group_id', $group->id)
+            ->where('user_id', $request->user()->id)
+            ->firstOrFail()
+            ->delete();
     }
 }

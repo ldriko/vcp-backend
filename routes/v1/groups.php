@@ -10,11 +10,11 @@ Route::prefix('/groups')
     ->middleware('auth:sanctum')
     ->group(function () {
         Route::get('', [GroupController::class, 'index']);
+        Route::get('/code', [GroupController::class, 'generateCode']);
         Route::post('', [GroupController::class, 'store']);
         Route::get('/{group}/invite', [GroupController::class, 'invite'])
             ->middleware('group.admin');
-        Route::post('/{group}/join', [GroupController::class, 'join'])
-            ->middleware('signed')
+        Route::post('/join', [GroupController::class, 'join'])
             ->name('group.join');
 
         Route::prefix('/{group}')->middleware('group.member')->group(function () {
@@ -24,6 +24,11 @@ Route::prefix('/groups')
                 Route::put('', [GroupController::class, 'update']);
                 Route::delete('', [GroupController::class, 'destroy']);
             });
+
+            Route::delete('/exit', [GroupController::class, 'exit'])
+                ->name('group.exit');
+
+            Route::get('/members/count', [GroupController::class, 'showMembersCount']);
 
             Route::prefix('/members')->middleware('group.admin')->group(function () {
                 Route::get('', [GroupMemberController::class, 'index']);
