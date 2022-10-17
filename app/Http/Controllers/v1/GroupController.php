@@ -10,9 +10,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class GroupController extends Controller
 {
@@ -67,16 +70,24 @@ class GroupController extends Controller
     public function store(Request $request): Model|Builder
     {
         $request->validate([
-            'title' => ['required', 'max:50'],
-            'description' => ['sometimes', 'max:250'],
-            'code' => ['required', 'min:9', 'max:9']
+            'title' => 'required|max:50',
+            'description' => 'sometimes|max:250',
+            'code' => 'required|min:9|max:9',
+            'picture' => 'sometimes|file|image'
         ]);
+
+        $picturePath = null;
+
+        if ($request->hasFile('picture')) {
+            $picturePath = Storage::disk('groups')->put('', $request->file('picture'));
+        }
 
         $group = Group::query()->create([
             'code' => $request->code,
             'user_id' => $request->user()->id,
             'title' => $request->title,
             'description' => $request->description,
+            'picture_path' => $picturePath
         ]);
 
         GroupMember::query()->create([
@@ -108,6 +119,27 @@ class GroupController extends Controller
     }
 
     /**
+     * Generates url for the specified group
+     *
+     * @param Group $group
+     * @param Request $request
+     *
+     * @return Response|StreamedResponse
+     */
+    public function showPicture(Group $group, Request $request): Response|StreamedResponse
+    {
+        if (!$group->picture_path) return response()->noContent();
+
+        return Storage::disk('groups')->download(
+            $group->picture_path,
+            null,
+            [
+                'Content-Disposition' => $request->boolean('is_download') ? 'attachment;' : 'inline;'
+            ]
+        );
+    }
+
+    /**
      * Show the group members count
      *
      * @param Group $group
@@ -130,14 +162,22 @@ class GroupController extends Controller
     public function update(Request $request, Group $group): Group
     {
         $request->validate([
-            'title' => ['required', 'max:50'],
-            'description' => ['sometimes', 'max:250'],
+            'title' => 'required|max:50',
+            'description' => 'sometimes|max:250',
+            'picture' => 'sometimes|file|image'
         ]);
 
         $group->update([
             'title' => $request->title,
             'description' => $request->description,
         ]);
+
+        if ($request->hasFile('picture')) {
+            $picturePath = Storage::disk('groups')->put('', $request->file('picture'));
+            $group->update([
+                'picture_path' => $picturePath
+            ]);
+        }
 
         return $group;
     }

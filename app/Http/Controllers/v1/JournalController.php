@@ -121,7 +121,7 @@ class JournalController extends Controller
      */
     public function show(Journal $journal): Journal
     {
-        return $journal;
+        return $journal->load('user');
     }
 
     /**
@@ -134,13 +134,18 @@ class JournalController extends Controller
     {
         $request->validate(['is_download' => 'sometimes|boolean']);
 
+        $headers = [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => $request->boolean(
+                'is_download'
+            ) ? 'attachment; filename="' . $journal->title . '.pdf"'
+                : 'inline; filename="' . $journal->title . '.pdf"',
+        ];
+
         return Storage::disk('journals')->download(
             $journal->path,
             $journal->title,
-            [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => $request->boolean('is_download') ? 'attachment;' : 'inline;'
-            ]
+            $headers
         );
     }
 
@@ -150,7 +155,7 @@ class JournalController extends Controller
      */
     public function publish(Request $request, Journal $journal)
     {
-        $request->validate(['publish' => 'required|boolean']);
+        $request->validate(['publish' => 'required | boolean']);
         $journal->update(['is_published' => $request->publish]);
     }
 
@@ -165,13 +170,13 @@ class JournalController extends Controller
     public function update(Request $request, Journal $journal): Journal
     {
         $request->validate([
-            'title' => 'required|max:100',
-            'short_desc' => 'required|max:250',
-            'categories' => 'required|array',
-            'file' => 'sometimes|required|file|mimes:pdf',
+            'title' => 'required | max:100',
+            'short_desc' => 'required | max:250',
+            'categories' => 'required | array',
+            'file' => 'sometimes | required | file | mimes:pdf',
         ]);
 
-        $lastCode = Str::of($journal->code)->explode('-')->last();
+        $lastCode = Str::of($journal->code)->explode(' - ')->last();
         $slug = Str::slug($request->title . ' ' . $lastCode);
 
         DB::beginTransaction();

@@ -16,4 +16,9 @@ class GroupChat extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function journal(): BelongsTo
+    {
+        return $this->belongsTo(Journal::class);
+    }
 }

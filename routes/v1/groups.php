@@ -19,6 +19,7 @@ Route::prefix('/groups')
 
         Route::prefix('/{group}')->middleware('group.member')->group(function () {
             Route::get('', [GroupController::class, 'show']);
+            Route::get('/picture', [GroupController::class, 'showPicture']);
 
             Route::middleware('group.admin')->group(function () {
                 Route::put('', [GroupController::class, 'update']);

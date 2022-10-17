@@ -44,6 +44,13 @@ return [
             'throw' => false,
         ],
 
+        'groups' => [
+            'driver' => 'local',
+            'root' => storage_path('app/groups'),
+            'url' => env('APP_URL') . '/storage',
+            'throw' => false,
+        ],
+
         'journals' => [
             'driver' => 'local',
             'root' => storage_path('app/journals'),

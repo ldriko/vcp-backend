@@ -13,4 +13,4 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', fn() => ['Laravel' => app()->version()]);
+Route::get('/', fn() => [env('APP_NAME', 'Laravel') => app()->version()]);
