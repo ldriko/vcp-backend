@@ -41,6 +41,9 @@ class JournalController extends Controller
             'q' => 'required',
             'limit' => 'sometimes|numeric',
             'page' => 'sometimes|numeric',
+            'categories' => 'sometimes|array',
+            'publishing_years' => 'sometimes|array',
+            'publishing_years.*' => 'sometimes|integer',
         ]);
 
         $searchQuery = Str::of($request->q)->explode(' ');
@@ -54,6 +57,20 @@ class JournalController extends Controller
                 $query->orWhere('short_desc', 'like', "%{$q}%");
             }
         });
+
+        if ($request->categories) {
+            $query->whereHas('categories', function (Builder $query) use ($request) {
+                $query->where(function (Builder $query) use ($request) {
+                    foreach ($request->categories as $category) {
+                        $query->orWhere('category_id', $category);
+                    }
+                });
+            });
+        }
+
+        if ($request->publishing_years) {
+            $query->whereIn(DB::raw('YEAR(`published_at`)'), $request->publishing_years);
+        }
 
         $query->limit($request->limit ?? 15);
 

@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Journal;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -35,7 +36,9 @@ class JournalFactory extends Factory
             'user_id' => User::query()->inRandomOrder()->first()->id,
             'title' => $title,
             'short_desc' => $this->faker->sentence(20),
-            'path' => 'sample.pdf'
+            'path' => 'sample.pdf',
+            'is_published' => true,
+            'published_at' => Carbon::now()->toDateTimeString()
         ];
     }
 }
