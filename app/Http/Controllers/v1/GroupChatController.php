@@ -67,6 +67,6 @@ class GroupChatController extends Controller
 
         $group->touch();
 
-        return $chat;
+        return $chat->load('journal');
     }
 }
