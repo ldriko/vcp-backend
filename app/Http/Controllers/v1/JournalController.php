@@ -21,11 +21,42 @@ class JournalController extends Controller
     /**
      * @param Request $request
      *
-     * @return Collection
+     * @return array|Collection
      */
-    public function index(Request $request): Collection
+    public function index(Request $request): array|Collection
     {
-        return $request->user()->journals;
+        $request->validate([
+            'limit' => 'sometimes|integer',
+            'page' => 'sometimes|integer',
+            'latest' => 'sometimes|boolean',
+            'with_count' => 'sometimes|boolean',
+            'categories' => 'sometimes|array',
+            'categories.*' => 'sometimes|integer'
+        ]);
+
+        $query = $request->user()->journals()->with('categories');
+
+        if ($request->has('categories')) {
+            $query->whereHas('categories', function ($query) use ($request) {
+                $query->whereIn('id', $request->categories);
+            });
+        }
+
+        if ($request->with_count) {
+            $count = $query->count();
+        }
+
+        if ($request->has('limit')) $query->limit($request->limit);
+        if ($request->has('page')) $query->offset(($request->page - 1) * $request->limit);
+        if ($request->has('latest') && $request->latest) $query->latest();
+
+        $result = $query->get();
+
+        if ($request->with_count) {
+            return ['count' => $count, 'result' => $result];
+        }
+
+        return $result;
     }
 
     /**
@@ -91,8 +122,10 @@ class JournalController extends Controller
     public function store(Request $request): Model|Builder
     {
         $request->validate([
-            'title' => 'required',
-            'short_desc' => 'required',
+            'title' => 'required|max:150',
+            'author_name' => 'required',
+            'short_desc' => 'required|max:250',
+            'publishing_date' => 'required|date',
             'categories' => 'required|array',
             'file' => 'required|file|mimes:pdf'
         ]);
@@ -109,6 +142,9 @@ class JournalController extends Controller
             'slug' => $slug,
             'user_id' => $request->user()->id,
             'title' => $request->title,
+            'author_name' => $request->author_name,
+            'published_at' => $request->publishing_date,
+            'is_published' => true,
             'short_desc' => $request->short_desc,
             'path' => $path
         ]);
@@ -138,7 +174,7 @@ class JournalController extends Controller
      */
     public function show(Journal $journal): Journal
     {
-        return $journal->load('user');
+        return $journal->load(['user', 'categories']);
     }
 
     /**
@@ -172,7 +208,7 @@ class JournalController extends Controller
      */
     public function publish(Request $request, Journal $journal)
     {
-        $request->validate(['publish' => 'required | boolean']);
+        $request->validate(['publish' => 'required|boolean']);
         $journal->update(['is_published' => $request->publish]);
     }
 
@@ -187,10 +223,12 @@ class JournalController extends Controller
     public function update(Request $request, Journal $journal): Journal
     {
         $request->validate([
-            'title' => 'required | max:100',
-            'short_desc' => 'required | max:250',
-            'categories' => 'required | array',
-            'file' => 'sometimes | required | file | mimes:pdf',
+            'title' => 'required|max:150',
+            'author_name' => 'required|max:100',
+            'short_desc' => 'required|max:250',
+            'publishing_date' => 'required|date',
+            'categories' => 'required|array',
+            'file' => 'sometimes|required|file|mimes:pdf',
         ]);
 
         $lastCode = Str::of($journal->code)->explode(' - ')->last();
@@ -201,6 +239,9 @@ class JournalController extends Controller
         $journal->update([
             'slug' => $slug,
             'title' => $request->title,
+            'published_at' => $request->publishing_date,
+            'is_published' => true,
+            'author_name' => $request->author_name,
             'short_desc' => $request->short_desc,
         ]);
 

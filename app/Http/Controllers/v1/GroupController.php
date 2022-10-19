@@ -28,6 +28,8 @@ class GroupController extends Controller
      */
     public function index(Request $request): Collection
     {
+        $request->validate(['limit' => 'sometimes|integer']);
+
         $query = Group::query()
             ->with('latestChat.user')
             ->whereHas('members', function (Builder $query) use ($request) {
@@ -36,6 +38,10 @@ class GroupController extends Controller
 
         if ($request->has('q')) {
             $query->where('title', 'like', "%$request->q%");
+        }
+
+        if ($request->has('limit')) {
+            $query->limit($request->limit);
         }
 
         return $query->latest()->get();

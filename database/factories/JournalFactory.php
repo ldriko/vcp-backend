@@ -28,13 +28,16 @@ class JournalFactory extends Factory
         $title = $this->faker->sentence();
         $titleForSlug = Str::of($title)->replaceMatches('/[^A-Za-z0-9\-]/', '');
 
+        $user = User::query()->inRandomOrder()->first();
+
         return [
             'code' => $code,
             'slug' => fn(array $attributes) => Str::slug(
                 $attributes['title'] ?? $titleForSlug . ' ' . Arr::last($randomCodes)
             ),
-            'user_id' => User::query()->inRandomOrder()->first()->id,
+            'user_id' => $user->id,
             'title' => $title,
+            'author_name' => $user->name,
             'short_desc' => $this->faker->sentence(20),
             'path' => 'sample.pdf',
             'is_published' => true,
