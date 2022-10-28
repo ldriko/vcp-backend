@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
@@ -27,18 +28,25 @@ class RegisteredUserController extends Controller
     public function store(Request $request): Model|Builder
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'confirmed', Password::defaults()],
-            'gender' => ['required', 'in:0,1,2'],
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|confirmed', Password::defaults(),
+            'gender' => 'required|in:0,1,2',
+            'picture' => 'sometimes|image'
         ]);
 
+        /** @var User $user */
         $user = User::query()->create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'gender' => $request->gender
         ]);
+
+        if ($request->hasFile('picture')) {
+            $path = Storage::disk('users')->put('', $request->file('picture'));
+            $user->update(['picture_path' => $path]);
+        }
 
         event(new Registered($user));
 
@@ -56,16 +64,16 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'password' => ['sometimes', 'required', 'confirmed', Password::defaults()],
-            'gender' => ['required', Rule::in([0, 1, 2])]
+            'picture' => 'sometimes|image'
         ]);
 
         $user = $request->user();
 
-        $user->update($request->only('name', 'gender'));
+        $user->update($request->only('name'));
 
-        if ($request->has('password')) {
-            $user->update(['password' => Hash::make($request->password)]);
+        if ($request->hasFile('picture')) {
+            $path = Storage::disk('users')->put('', $request->file('picture'));
+            $user->update(['picture_path' => $path]);
         }
 
         return $user;
