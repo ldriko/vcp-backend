@@ -86,6 +86,7 @@ class JournalController extends Controller
             foreach ($searchQuery as $q) {
                 $query->orWhere('title', 'like', "%{$q}%");
                 $query->orWhere('short_desc', 'like', "%{$q}%");
+                $query->orWhere('author_name', 'like', "%{$q}%");
             }
         });
 
